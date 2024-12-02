@@ -1,21 +1,24 @@
 import React from "react";
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-// import Header from "../TODOLIST/header";
-import Todolist from "../Component/todolist";
-// import Todo from "../TODOLIST/todo";
+import Header from "../Header/header";
+
+import Todo from "../Component/Muitodotable";
+import Todolists from "../Component/Agtodolist";
+
 export default function RouterApp() {
 
     return (
         <>
             <Router>
-                {/* <Header /> */}
+                <Header />
                 <Routes>
-                {/* <Route path="/" element={<Todo />} /> */}
-                <Route path="/" element={<Todolist />} />
+                    <Route path="/" element={<Todo />} />
+                    <Route path="/Agtodolist" element={<Todolists />} />
+
 
 
                 </Routes>
-                {/* <Footer/> */}
+               
             </Router>
 
         </>

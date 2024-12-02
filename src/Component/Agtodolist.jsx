@@ -1,12 +1,15 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from "yup";
 import React, { useEffect, useState } from 'react';
-import { Box, Button, TextField, FormControlLabel, Checkbox, Typography, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Paper } from '@mui/material';
+import { Box, Button, TextField, FormControlLabel, Checkbox, Typography, } from '@mui/material';
 import { useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from "react-redux";
 import { addtodo, listtodo, deletetodo } from '../Redux/todoSlice'
+import { AgGridReact } from 'ag-grid-react';
+import 'ag-grid-community/styles/ag-grid.css';
+import 'ag-grid-community/styles/ag-theme-alpine.css';
 
-// YUP FORM VALIDATION //  
+// YUP FORM VALIDATION //
 const yupformdata = yup.object().shape({
     title: yup.string().required('title is required'),
     description: yup.string().required('description is required'),
@@ -14,7 +17,8 @@ const yupformdata = yup.object().shape({
     image: yup.mixed().required('image is required')
 })
 
-export default function Todolist() {
+
+export default function Todolists() {
 
     const dispatch = useDispatch();
 
@@ -27,15 +31,14 @@ export default function Todolist() {
 
     // get todo from localstorage
     useEffect(() => {
-        const saveTodo = JSON.parse(localStorage.getItem('Todostorage')) || [];
+        const saveTodo = JSON.parse(localStorage.getItem('tododata')) || [];
         // dispatch(listtodo(saveTodo));
 
-        // if (saveTodo.length > 0 && Todostorage.length === 0) {
-            if (saveTodo) {
+        if (saveTodo) {
 
             dispatch(listtodo(saveTodo));
         }
-    }, [dispatch, Todostorage])
+    }, [dispatch,])
 
     // set todo from localstorage
     useEffect(() => {
@@ -61,6 +64,8 @@ export default function Todolist() {
             //update state
             dispatch(addtodo(newTodoFormData));
             seteditData(null)
+            window.location.reload();
+
         } else {
             dispatch(addtodo(newTodoFormData));
 
@@ -97,15 +102,62 @@ export default function Todolist() {
 
     // Refresh Data from localStorage
     const handleRefresh = () => {
-        listtodo();
-        // const savedTodos = JSON.parse(localStorage.getItem('Todostorage'));
-        // if (savedTodos.length > 0) {
-        //     dispatch(listtodo(savedTodos));
-            
-        // }
-        // console.log(savedTodos)
-        console.log(listtodo)
+
+        const savedTodos = JSON.parse(localStorage.getItem('tododata')) || [];
+            dispatch(listtodo(savedTodos));
+
+       
     };
+
+    const columnDefs = [
+        { headerName: 'Title', field: 'title', sortable: true, filter: true },
+        { headerName: 'Description', field: 'description' },
+        { headerName: 'End Date', field: 'enddate' },
+        {
+            headerName: 'Complete', field: 'isCompleted', sortable: true, filter: true,
+            cellRendererFramework: (params) => (
+                <Button onClick={() => handleEdit(params.data)}>
+                    {params.value ? 'Yes' : 'No'}
+                </Button>
+            ),
+        },
+        {
+            headerName: 'Image',
+            field: 'image',
+            cellRenderer: (params) => (
+                <img
+                    src={params.value}
+                    alt="Item"
+                    style={{ width: 50, height: 50, borderRadius: 1 }}
+                />
+            ),
+        },
+        {
+            headerName: 'Actions',
+            field: 'actions',
+            cellRendererFramework: (params) => (
+                <Box display="flex" gap={1}>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        size="small"
+                        onClick={() => handleEdit(params.data.id)}
+                    >
+                        Edit
+                    </Button>
+                    <Button
+                        variant="contained"
+                        color="error"
+                        size="small"
+                        onClick={() => handleDelete(params.data.id)}
+                    >
+                        Delete
+                    </Button>
+                </Box>
+            ),
+        },
+    ];
+
     return (
         <Box width='100%' height='100vh'>
             <Box
@@ -183,43 +235,11 @@ export default function Todolist() {
                 </Box>
 
             </Box>
-            <TableContainer component={Paper} sx={{ height: '50vh' }}>
-                <Table>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell>Title</TableCell>
-                            <TableCell>Description</TableCell>
-                            <TableCell>End Data</TableCell>
-                            <TableCell>Image</TableCell>
-                            <TableCell>Profile image</TableCell>
-                            <TableCell align="center">Actions</TableCell>
-                        </TableRow>
-                    </TableHead>
+            <Box className="ag-theme-alpine" sx={{ height: 400, width: '100%', marginTop: 4, p: 2 }}>
+                <AgGridReact rowData={Todostorage} columnDefs={columnDefs} pagination={true} />
+            </Box>
 
-                    <TableBody>
-                        {Todostorage.map((item) => (
-                            <TableRow key={item.id}>
-                                <TableCell>{item.title}</TableCell>
-                                <TableCell>{item.description}</TableCell>
-                                <TableCell>{new Date(item.enddate).toLocaleDateString()}</TableCell>
-                                <TableCell>{item.isCompleted ? "Yes" : "No"}</TableCell>
-                                <TableCell><img src={item.image} alt="Todo"
-                                    style={{ width: 50, height: 50, objectFit: 'cover', borderRadius: '5px' }}
-                                />
-                                </TableCell>
-                                <TableCell align="center">
-                                    <Button variant="outlined" color="primary" onClick={() => handleEdit(item.id)} sx={{ marginRight: 1 }}>
-                                        Edit
-                                    </Button>
-                                    <Button variant="outlined" color="secondary" onClick={() => handleDelete(item.id)}>
-                                        Delete
-                                    </Button>
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </TableContainer>
+            
 
         </Box>
     );

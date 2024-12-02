@@ -18,7 +18,7 @@ const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
 
 function Header() {
 
-    const pages = [{ name: 'Todo', path: '/' }, { name: 'TOdo List', path: '/todolist' }];
+    const pages = [{ name: 'Todo List M-UI', path: '/' }, { name: 'TOdo List Ag-Grid', path: '/Agtodolist' }];
 
     const [anchorElNav, setAnchorElNav] = React.useState(null);
     const [anchorElUser, setAnchorElUser] = React.useState(null);
