@@ -31,13 +31,13 @@ export default function Todolists() {
 
     // get todo from localstorage
     useEffect(() => {
-        const saveTodo = JSON.parse(localStorage.getItem('tododata')) || [];
-        // dispatch(listtodo(saveTodo));
+        const saveTodo = JSON.parse(localStorage.getItem('Todostorage')) || [];
+        dispatch(listtodo(saveTodo));
 
-        if (saveTodo) {
+        // if (saveTodo) {
 
-            dispatch(listtodo(saveTodo));
-        }
+        //     dispatch(listtodo(saveTodo));
+        // }
     }, [dispatch,])
 
     // set todo from localstorage
@@ -46,68 +46,6 @@ export default function Todolists() {
         localStorage.setItem('Todostorage', JSON.stringify(Todostorage));
 
     }, [Todostorage])
-
-
-
-    // submit todo
-    const onSubmit = (data) => {
-        const newTodoFormData = {
-            id: editdata || Date.now(),
-            title: data.title,
-            description: data.description,
-            enddate: data.enddate,
-            isCompleted: !!data.isCompleted,
-            image: data.image && data.image[0] ? URL.createObjectURL(data.image[0]) :
-                (editdata ? Todostorage.find(todo => todo.id === editdata).image : null),
-        }
-        if (editdata) {
-            //update state
-            dispatch(addtodo(newTodoFormData));
-            seteditData(null)
-            window.location.reload();
-
-        } else {
-            dispatch(addtodo(newTodoFormData));
-
-            reset({
-                title: "",
-                description: "",
-                enddate: "",
-                isCompleted: false,
-                image: null,
-            });
-
-        }
-
-    }
-
-    // Handle edit button click
-    const handleEdit = (id) => {
-        const todoToEdit = Todostorage.find(todo => todo.id === id);
-        if (todoToEdit) {
-            reset({
-                title: todoToEdit.title,
-                description: todoToEdit.description,
-                enddate: todoToEdit.enddate,
-                isCompleted: todoToEdit.isCompleted,
-                image: null
-            });
-            seteditData(id);
-        }
-    };
-    // delete todo
-    const handleDelete = (id) => {
-        dispatch(deletetodo(id));
-    };
-
-    // Refresh Data from localStorage
-    const handleRefresh = () => {
-
-        const savedTodos = JSON.parse(localStorage.getItem('tododata')) || [];
-            dispatch(listtodo(savedTodos));
-
-       
-    };
 
     const columnDefs = [
         { headerName: 'Title', field: 'title', sortable: true, filter: true },
@@ -157,6 +95,97 @@ export default function Todolists() {
             ),
         },
     ];
+
+    const imageShow = (files) => {
+        new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(files);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = (error) => reject(error)
+        })
+    }
+
+    const onSubmit = async (data) => {
+        const imagefile = data.image && data.image[0];
+        const baseImage = imagefile ? await imageShow(imagefile) :
+            (editdata ? Todostorage.find(todo => todo.id === editdata)?.image : null);
+
+        const newTodoFormData = {
+            id: editdata || Date.now(),
+            title: data.title,
+            description: data.description,
+            enddate: data.enddate,
+            isCompleted: !!data.isCompleted,
+            image: baseImage,
+        };
+        const updatedTodos = editdata
+            ? Todostorage.map(todo => (todo.id === editdata ? newTodoFormData : todo))
+            : [...Todostorage, newTodoFormData];
+        localStorage.setItem('Todostorage', JSON.stringify(updatedTodos));
+
+        dispatch(listtodo(updatedTodos));
+    }
+    // submit todo
+    // const onSubmit = (data) => {
+    //     const newTodoFormData = {
+    //         id: editdata || Date.now(),
+    //         title: data.title,
+    //         description: data.description,
+    //         enddate: data.enddate,
+    //         isCompleted: !!data.isCompleted,
+    //         image: data.image && data.image[0] ? URL.createObjectURL(data.image[0]) :
+    //             (editdata ? Todostorage.find(todo => todo.id === editdata)?.image : null),
+    //     }
+    //     if (editdata) {
+    //         //update state
+    //         dispatch(addtodo(newTodoFormData));
+    //         seteditData(null)
+    //         window.location.reload();
+
+    //     } else {
+    //         dispatch(addtodo(newTodoFormData));
+
+    //         reset({
+    //             title: "",
+    //             description: "",
+    //             enddate: "",
+    //             isCompleted: false,
+    //             image: null,
+    //         });
+
+    //     }
+
+    // }
+
+    // Handle edit button click
+    const handleEdit = (id) => {
+        const todoToEdit = Todostorage.find(todo => todo.id === id);
+        if (todoToEdit) {
+            reset({
+                title: todoToEdit.title,
+                description: todoToEdit.description,
+                enddate: todoToEdit.enddate,
+                isCompleted: todoToEdit.isCompleted,
+                image: null
+            });
+            seteditData(id);
+        }
+    };
+    // delete todo
+    const handleDelete = (id) => {
+        dispatch(deletetodo(id));
+    };
+
+    // Refresh Data from localStorage
+    const handleRefresh = () => {
+
+        const savedTodos = JSON.parse(localStorage.getItem('Todostorage')) || [];
+        dispatch(listtodo(savedTodos));
+
+
+    };
+
+   
 
     return (
         <Box width='100%' height='100vh'>
@@ -239,7 +268,7 @@ export default function Todolists() {
                 <AgGridReact rowData={Todostorage} columnDefs={columnDefs} pagination={true} />
             </Box>
 
-            
+
 
         </Box>
     );
